@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VPM jointly forecasts future multi-view videos and persistent 3D point trajectories. Learning where scene points will move improves video fidelity, 3D consistency, and robot action learning.">
+  <meta name="author" content="Byungwoo Jeon, Sunghwan Hong, Dohyeon Kim, Jonghoon Lee, Jungwoo Park, Inhee Lee, Doosan Baek, Jinil Kim, Taehyun Lim, Hanbyul Joo, Marc Pollefeys, Saining Xie, Jinwoo Shin">
+  <meta property="og:title" content="VPM: Learning the 4D World through Point Trajectory Forecasting">
+  <meta property="og:description" content="VPM jointly forecasts future multi-view videos and persistent 3D point trajectories. Learning where scene points will move improves video fidelity, 3D consistency, and robot action learning.">
+  <!-- Replace with the absolute URL once the page is deployed, e.g. https://<name>.github.io/assets/img/project-thumbnail.jpg -->
+  <meta property="og:image" content="assets/img/project-thumbnail.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Video-Point Models title card over a mosaic of multi-view robot, urban, and indoor clips with 3D point tracks.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="assets/img/project-thumbnail.jpg">
+  <meta name="referrer" content="no-referrer">
+  <title>VPM: Learning the 4D World through Point Trajectory Forecasting</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap">
+  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="results-chart.css?v=12">
+  <script src="app.js?v=12" defer></script>
+  <script src="results-chart.js?v=12" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<nav class="site-nav" aria-label="Main navigation">
+  <div class="nav-inner container">
+    <a class="brand" href="#main"><svg class="brand-symbol" viewBox="0 0 40 40" aria-hidden="true"><path d="M6.5 31.5C13 31 14.5 20 20.5 19.6S30.5 11.5 33 8.6" fill="none" stroke="#bbcda9" stroke-width="2.6" stroke-linecap="round" stroke-dasharray=".1 5.2"/><circle cx="6.5" cy="31.5" r="3.4" fill="#bbcda9"/><circle cx="20.5" cy="19.6" r="4.6" fill="#779b54"/><circle cx="33" cy="8.6" r="5.8" fill="#3f5f8a"/></svg>VPM</a>
+    <div class="nav-links"><a href="#motivation">Overview</a><a href="#method">Method</a><a href="#data">Data</a><a href="#results">Results</a><a href="#robot">Robot</a><a href="#gallery">Gallery</a></div>
+  </div>
+</nav>
+<main id="main">
+  <header class="paper-header container" aria-labelledby="paper-title">
+    <div class="hero-wordmark" aria-hidden="true">Video-Point Model<svg class="trajectory-mark" viewBox="0 0 40 40"><path d="M6.5 31.5C13 31 14.5 20 20.5 19.6S30.5 11.5 33 8.6" fill="none" stroke="#bbcda9" stroke-width="2.2" stroke-linecap="round" stroke-dasharray=".1 4.6"/><circle cx="6.5" cy="31.5" r="3.2" fill="#bbcda9"/><circle cx="20.5" cy="19.6" r="4.4" fill="#779b54"/><circle cx="33" cy="8.6" r="5.6" fill="#3f5f8a"/></svg></div>
+    <h1 id="paper-title"><span class="visually-hidden">Video-Point Model (VPM): </span>Learning the 4D World through Point Trajectory Forecasting</h1>
+    <div class="hero-meta">
+      <p class="authors">
+      <span class="author"><a href="https://rootyjeon.github.io/" target="_blank" rel="noopener">Byungwoo Jeon</a><sup>1*</sup></span>,
+      <span class="author"><a href="https://sunghwanhong.github.io/" target="_blank" rel="noopener">Sunghwan Hong</a><sup>2*</sup></span>,
+      <span class="author"><a href="https://openreview.net/profile?id=~Dohyeon_Kim5" target="_blank" rel="noopener">Dohyeon Kim</a><sup>3</sup></span>,
+      <span class="author"><a href="https://jhoonjwa.github.io/" target="_blank" rel="noopener">Jonghoon Lee</a><sup>1</sup></span>,
+      <span class="author"><a href="https://openreview.net/profile?id=~Jungwoo_Park2" target="_blank" rel="noopener">Jungwoo Park</a><sup>1</sup></span>,
+      <span class="author"><a href="https://blog.sulwon.com/" target="_blank" rel="noopener">Inhee Lee</a><sup>3</sup></span>,
+      <span class="author"><a href="https://pslab.ai/en/" target="_blank" rel="noopener">Doosan Baek</a><sup>5</sup></span>,
+      <span class="author"><a href="https://pslab.ai/en/" target="_blank" rel="noopener">Jinil Kim</a><sup>5</sup></span>,
+      <span class="author"><a href="https://pslab.ai/en/" target="_blank" rel="noopener">Taehyun Lim</a><sup>5</sup></span>,
+      <span class="author"><a href="https://jhugestar.github.io/" target="_blank" rel="noopener">Hanbyul Joo</a><sup>3,4</sup></span>,
+      <span class="author"><a href="https://people.inf.ethz.ch/pomarc/" target="_blank" rel="noopener">Marc Pollefeys</a><sup>2</sup></span>,
+      <span class="author"><a href="https://www.sainingxie.com/" target="_blank" rel="noopener">Saining Xie</a><sup>6,7†</sup></span>,
+      <span class="author"><a href="https://alinlab.kaist.ac.kr/shin.html" target="_blank" rel="noopener">Jinwoo Shin</a><sup>1,4†</sup></span>
+      </p>
+      <p class="affiliations"><span><sup>1</sup>KAIST</span><span><sup>2</sup>ETH Zürich</span><span><sup>3</sup>Seoul National University</span><span><sup>4</sup>RLWRLD</span><span><sup>5</sup>Physics Sim Lab</span><span><sup>6</sup>AMI Labs</span><span><sup>7</sup>New York University</span></p>
+      <p class="author-notes"><span><sup>*</sup>Equal contribution</span><span><sup>†</sup>Equal advising</span></p>
+    </div>
+    <!-- TODO: replace each href="#" with the real URL -->
+    <nav class="hero-links" aria-label="Paper resources">
+      <a class="link-button" href="#" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5"/><path d="M8.5 13h7M8.5 17h5"/></svg><span>PDF</span></a>
+      <a class="link-button" href="#" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.8423 0a1.0037 1.0037 0 0 0-.922.6078c-.1536.3687-.0438.6275.2938 1.1113l6.9185 8.3597-1.0223 1.1058a1.0393 1.0393 0 0 0 .003 1.4229l1.2292 1.3135-5.4391 6.4444c-.2803.299-.4538.823-.2971 1.1986a1.0253 1.0253 0 0 0 .9585.635.9133.9133 0 0 0 .6891-.3405l5.783-6.126 7.4902 8.0051a.8527.8527 0 0 0 .6835.2597.9575.9575 0 0 0 .8777-.6138c.1577-.377-.017-.7502-.306-1.1407l-7.0518-8.3418 1.0632-1.13a.9626.9626 0 0 0 .0089-1.3165L4.6336.4639s-.3733-.4535-.768-.463zm0 .272h.0166c.2179.0052.4874.2715.5644.3639l.005.006.0052.0055 10.169 10.9905a.6915.6915 0 0 1-.0072.945l-1.0666 1.133-1.4982-1.7724-8.5994-10.39c-.3286-.472-.352-.6183-.2592-.841a.7307.7307 0 0 1 .6704-.4401Zm14.341 1.5701a.877.877 0 0 0-.6554.2418l-5.6962 6.1584 1.6944 1.8319 5.3089-6.5138c.3251-.4335.479-.6603.3247-1.0292a1.1205 1.1205 0 0 0-.9763-.689zm-7.6557 12.2823 1.3186 1.4135-5.7864 6.1295a.6494.6494 0 0 1-.4959.26.7516.7516 0 0 1-.706-.4669c-.1119-.2682.0359-.6864.2442-.9083l.0051-.0055.0047-.0055z"/></svg><span>arXiv</span></a>
+      <a class="link-button" href="#" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg><span>Code</span></a>
+      <a class="link-button" href="#" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M1.4446 11.5059c0 1.1021.1673 2.1585.4847 3.1563-.0378-.0028-.0691-.0058-.1058-.0058-.4209 0-.8015.16-1.0704.4512-.3454.3737-.4984.8335-.4316 1.293a1.576 1.576 0 0 0 .2148.5978c-.2319.1864-.4018.4456-.4844.7578-.0646.2448-.131.7543.2149 1.2794a1.4552 1.4552 0 0 0-.0625.1055c-.208.3923-.2207.8372-.0371 1.25.2783.6258.9696 1.1175 2.3126 1.6467.8356.3292 1.5988.5411 1.6056.543 1.1046.2847 2.104.4277 2.969.4277 1.4173 0 2.4754-.3849 3.1525-1.1446 1.538.2651 2.791.1403 3.592.006.6773.7555 1.7332 1.1387 3.1467 1.1387.8649 0 1.8643-.143 2.969-.4278.0068-.0019.77-.2138 1.6056-.543 1.343-.5292 2.0343-1.0208 2.3126-1.6466.1836-.4129.171-.8577-.037-1.25a1.4685 1.4685 0 0 0-.0626-.1056c.346-.525.2795-1.0346.2149-1.2793-.0826-.3122-.2525-.5714-.4844-.7579.11-.1816.1831-.3788.2148-.5977.0669-.4595-.0862-.9193-.4316-1.293-.2688-.2913-.6495-.4513-1.0704-.4513-.0209 0-.0376.0008-.0588.0018.3162-.9966.4846-2.0518.4846-3.1523 0-5.807-4.7362-10.5144-10.5789-10.5144-5.8426 0-10.5788 4.7073-10.5788 10.5144Zm10.5788-9.4831c5.2727 0 9.5476 4.246 9.5476 9.483a9.4201 9.4201 0 0 1-.2696 2.2365c-.0039-.0047-.0079-.011-.0117-.0156-.274-.3255-.6679-.5059-1.1075-.5059-.352 0-.714.1155-1.0763.3438-.2403.1517-.5058.422-.7793.7598-.2534-.3492-.608-.5832-1.0137-.6465a1.5174 1.5174 0 0 0-.2344-.0176c-.9263 0-1.4828.7993-1.6935 1.5177-.1046.2426-.6065 1.3482-1.3614 2.0978-1.1681 1.1601-1.4458 2.3534-.8396 3.6382-.843.1029-1.5836.0927-2.365-.006.5906-1.212.3626-2.4388-.8426-3.6322-.755-.7496-1.2568-1.8552-1.3614-2.0978-.2107-.7184-.7673-1.5177-1.6935-1.5177-.078 0-.1568.0054-.2344.0176-.4057.0633-.7604.2973-1.0137.6465-.2735-.3379-.539-.6081-.7794-.7598-.3622-.2283-.7243-.3438-1.0762-.3438-.4266 0-.8094.171-1.0821.4786a9.4208 9.4208 0 0 1-.2598-2.1936c0-5.237 4.2749-9.483 9.5475-9.483zM8.6443 7.0036c-.4838.0043-.9503.2667-1.1934.7227-.3536.6633-.1006 1.4873.5645 1.84.351.1862.4883-.5261.836-.6485.3107-.1095.841.399 1.0078.086.3536-.6634.1025-1.4874-.5625-1.84a1.3659 1.3659 0 0 0-.6524-.1602Zm6.8403 0c-.2199-.002-.4426.05-.6504.1602-.665.3526-.9181 1.1766-.5645 1.84.1669.313.6971-.1955 1.0079-.086.3476.1224.4867.8347.838.6485.6649-.3527.916-1.1767.5624-1.84-.243-.456-.7096-.7184-1.1934-.7227Zm-9.7565 1.418a.8768.8768 0 0 0-.877.877c0 .4846.3925.877.877.877a.8768.8768 0 0 0 .877-.877.8768.8768 0 0 0-.877-.877zm12.6434 0c-.4845 0-.879.3925-.879.877 0 .4846.3945.877.879.877a.8768.8768 0 0 0 .877-.877.8768.8768 0 0 0-.877-.877zM8.7927 11.459c-.179-.003-.2793.1107-.2793.416 0 .8097.3874 2.125 1.4279 2.924.207-.7123 1.3453-1.2832 1.5079-1.2012.2315.1167.2191.4417.6074.7266.3884-.285.374-.6098.6056-.7266.1627-.082 1.3009.4889 1.5079 1.2012 1.0404-.799 1.4278-2.1144 1.4278-2.924 0-1.2212-1.583.6402-3.5413.6485-1.4686-.0061-2.7266-1.0558-3.2639-1.0645zM4.312 14.4768c.5792.365 1.6964 2.2751 2.1056 3.0177.1371.2488.371.3536.582.3536.4188 0 .7465-.4138.0391-.9395-1.0636-.791-.6914-2.0846-.1836-2.1642a.4302.4302 0 0 1 .0664-.004c.4616 0 .666.7892.666.7892s.5959 1.4898 1.6213 2.508c.942.9356 1.062 1.703.4961 2.6661-.0164-.004-.0159.0236-.1484.2149-.1853.2673-.4322.4688-.7188.6152-.5062.2269-1.1397.2696-1.7833.2696-1.037 0-2.1017-.1824-2.6975-.336-.0293-.0075-3.6505-.9567-3.1916-1.8224.0771-.1454.2033-.2031.3633-.2031.6463 0 1.823.9551 2.3283.9551.113 0 .196-.0865.2285-.2031.2249-.8045-3.2787-1.0522-2.9846-2.1642.0519-.1967.193-.2757.3907-.2754.854 0 2.7704 1.4923 3.172 1.4923.0307 0 .0525-.0085.0645-.0274.2012-.3227.1096-.5865-1.3087-1.4395-1.4182-.8533-2.4315-1.329-1.8653-1.9416.0651-.0707.1574-.1015.2695-.1015.8611.0002 2.8948 1.84 2.8948 1.84s.5487.5683.8809.5683c.0762 0 .1416-.0315.1855-.1054.2355-.3946-2.1858-2.2183-2.3224-2.971-.0926-.51.0641-.7676.3555-.7676-.0006.008.1701-.0285.4942.1759zm16.2257.5918c-.1366.7526-2.5579 2.5764-2.3224 2.9709.044.074.1092.1055.1855.1055.3321 0 .881-.5684.881-.5684s2.0336-1.8397 2.8947-1.84c.1121 0 .2044.0308.2695.1016.5662.6125-.447 1.0882-1.8653 1.9415-1.4183.853-1.51 1.1168-1.3087 1.4396.012.0188.0337.0273.0644.0273.4016 0 2.3181-1.4923 3.1721-1.4923.1977-.0002.3388.0787.3907.2754.294 1.112-3.2095 1.3597-2.9846 2.1642.0325.1166.1156.2032.2285.2032.5054 0 1.682-.9552 2.3283-.9552.16 0 .2862.0577.3633.2032.459.8656-3.1623 1.8149-3.1916 1.8224-.5958.1535-1.6605.336-2.6975.336-.6351 0-1.261-.0409-1.7638-.2599-.2949-.1472-.5488-.3516-.7383-.625-.0411-.0682-.1026-.1476-.1426-.205-.5726-.9679-.455-1.7371.4903-2.676 1.0254-1.0182 1.6212-2.508 1.6212-2.508s.2044-.7891.666-.7891a.4318.4318 0 0 1 .0665.0039c.5078.0796.88 1.3732-.1836 2.1642-.7074.5257-.3797.9395.039.9395.211 0 .445-.1047.5821-.3535.4092-.7426 1.5264-2.6527 2.1056-3.0178.5588-.3524.99-.1816.8497.5918z"/></svg><span>VP-WorldBench</span></a>
+      <div class="link-dropdown">
+        <button class="link-button" type="button" aria-expanded="false" aria-controls="data-ckpt-menu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-13"/><path d="M4.5 12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3"/></svg><span>Data &amp; Ckpts</span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="link-menu" id="data-ckpt-menu">
+          <div class="link-menu-inner">
+            <a href="#" target="_blank" rel="noopener">VPM-Data</a>
+            <a href="#" target="_blank" rel="noopener">VPM checkpoints</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <section class="tldr-section container" id="overview" aria-label="Overview">
+    <div class="tldr-box"><span class="tldr-tag">TL;DR</span><p>Multi-view world models can render every camera convincingly while the cameras disagree about how the scene moves in 3D. <strong>VPM</strong> (Video-Point Model) jointly forecasts future videos from arbitrary viewpoints and the 3D trajectories of persistent scene points, given posed multi-view histories and a language instruction. Learning where points will move improves both video fidelity and 3D consistency, and the same point supervision also improves robot action learning.</p></div>
+    <figure class="paper-figure video-figure">
+      <video data-autoplay controls muted loop playsinline preload="metadata" poster="assets/videos/teaser.jpg" width="1920" height="1080" aria-label="Overview video of VPM"><source src="assets/videos/teaser.mp4" type="video/mp4"></video>
+      <figcaption><strong>Overview video.</strong> Motivation, model, point-guided generation, zero-shot control from predicted tracks, and real-robot rollouts.</figcaption>
+    </figure>
+  </section>
+
+  <section class="page-section section-band" id="motivation" aria-labelledby="motivation-title"><div class="container">
+    <div class="section-heading"><h2 id="motivation-title">Plausible videos are not coherent 3D motion</h2><p>Reliable multi-view forecasting requires videos from different cameras to describe the same evolving 3D scene. Visual plausibility alone does not establish whether a forecast does.</p></div>
+    <div class="problem-row">
+      <figure class="video-card">
+        <figcaption class="video-top"><span class="video-label rust">Cosmos3-Nano / three generated views</span></figcaption>
+        <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/motivation-cosmos3.jpg" width="1440" height="416" aria-label="Three views generated by Cosmos3-Nano for a van turning at an intersection"><source src="assets/videos/motivation-cosmos3.mp4" type="video/mp4"></video>
+        <p class="video-caption"><strong>Prompt:</strong> “The van slows down and makes a right turn at the intersection into the street on its right.”</p>
+      </figure>
+      <div class="problem-copy">
+        <h3>Each view can look right on its own</h3>
+        <p>Forecasts from arbitrary viewpoints should depict the same future event despite differences in perspective and visibility. Per-view realism does not check that.</p>
+        <p class="idea"><strong>Idea:</strong> forecast persistent 3D point trajectories together with the videos. Each trajectory follows one physical point across every camera and over time, so supervising it ties appearance changes in all views to a shared description of 3D motion.</p>
+      </div>
+    </div>
+
+    <figure class="spot-figure">
+      <div class="spot-canvas">
+        <img src="assets/img/teaser-figure.jpg" alt="Overview figure with three panels: (a) VP-WorldBench and VPM-Data with robot table manipulation and urban dynamics clips shown as 3D point trajectories; (b) the Video-Point Model taking multi-view video histories, camera parameters and a language instruction and producing future multi-view videos, robot actions and persistent 3D point trajectories; (c) benchmark results where VPM (V+T) has the lowest FVD and highest 3D accuracy, and bar charts showing track supervision lowers FVD on Robot and General splits." width="2400" height="1161" loading="lazy">
+        <div class="spot-hole" aria-hidden="true"></div>
+        <button class="spot-region" type="button" data-point="data" data-rect="0,0,24.3,100" style="left:0;width:24.3%" aria-label="Highlight panel (a), dataset and benchmark" aria-pressed="false"></button>
+        <button class="spot-region" type="button" data-point="model" data-rect="24.4,0,51.3,100" style="left:24.4%;width:51.3%" aria-label="Highlight panel (b), model overview" aria-pressed="false"></button>
+        <button class="spot-region" type="button" data-point="results" data-rect="75.8,0,24.2,100" style="left:75.8%;width:24.2%" aria-label="Highlight panel (c), quantitative results" aria-pressed="false"></button>
+      </div>
+      <ul class="spot-callouts">
+        <li><button class="spot-callout" type="button" data-point="data" aria-pressed="false"><strong>VPM-Data &amp; VP-WorldBench</strong><span class="callout-description">Simulated and real multi-view videos paired with persistent 3D point tracks, for tabletop manipulation and urban dynamics.</span></button></li>
+        <li><button class="spot-callout" type="button" data-point="model" aria-pressed="false"><strong>Video-Point Model</strong><span class="callout-description">From posed multi-view histories and an instruction, VPM forecasts future multi-view videos and persistent 3D point trajectories, and optionally robot actions.</span></button></li>
+        <li><button class="spot-callout" type="button" data-point="results" aria-pressed="false"><strong>Point learning improves video forecasting</strong><span class="callout-description">Under the same training budget, adding trajectory supervision lowers simulation FVD from 78.52 to 67.35 (Robot) and from 101.37 to 81.92 (General).</span></button></li>
+      </ul>
+    </figure>
+  </div></section>
+
+  <section class="page-section method-section container" id="method" aria-labelledby="method-title">
+    <div class="section-heading"><h2 id="method-title">Method</h2><p>VPM builds on the Mixture-of-Transformers backbone of Cosmos 3. It adds camera-conditioned multi-view processing and a trajectory head that is trained jointly with video generation, so point-motion supervision shapes the representation used for visual prediction.</p></div>
+    <figure class="paper-figure">
+      <a href="assets/img/method-overview.png" target="_blank" rel="noopener"><img src="assets/img/method-overview.png" alt="Architecture diagram: a reasoner reads the task instruction; a generator with shared layers processes action, history and noisy-future tokens and outputs action chunks and future videos; features from an intermediate layer feed a point tracker that uses 4D local correlation and Plücker embeddings, refines tracks with spatial, cross-view and temporal refinement for M iterations, and lifts them to a 3D point track." width="2400" height="1164" loading="lazy"></a>
+      <figcaption>From posed multi-view histories and a task instruction, VPM forecasts future videos and the trajectories of points queried from observed frames. The point tracker iteratively refines positions and depths before lifting them to 3D. The action-enabled extension also outputs robot action chunks.</figcaption>
+    </figure>
+  </section>
+
+  <section class="page-section section-band" id="data" aria-labelledby="data-title"><div class="container">
+    <div class="section-heading">
+      <h2 id="data-title">VPM-Data &amp; VP-WorldBench</h2>
+      <p>VPM-Data provides 10K simulated training clips that pair synchronized multi-view videos with persistent 3D point trajectories, camera geometry, depth, visibility masks and captions. VP-WorldBench evaluates forecasting on 1.2K held-out clips across simulated tabletop and urban scenes and real-world recordings.</p>
+      <!-- TODO: replace both href="#" with the Hugging Face dataset URLs -->
+      <div class="link-row">
+        <a class="hf-button" href="#" data-hf="vpm-data"><span class="hf-emoji" aria-hidden="true">🤗</span>VPM-Data</a>
+        <a class="hf-button" href="#" data-hf="vp-worldbench"><span class="hf-emoji" aria-hidden="true">🤗</span>VP-WorldBench</a>
+      </div>
+    </div>
+    <figure class="paper-figure sunburst-figure">
+      <div class="sunburst-grid">
+        <div class="sunburst-cell"><img src="assets/img/sunburst-vpm-data.svg" alt="VPM-Data (training): 10K simulation clips, 8,000 tabletop manipulation with robot, objects and clutter, and 2,000 urban clips with humans and vehicles." width="470" height="476" loading="lazy"></div>
+        <div class="sunburst-cell"><img src="assets/img/sunburst-vp-worldbench.svg" alt="VP-WorldBench (evaluation): 1.2K clips. Simulation: 500 tabletop (436 city, plus unseen kitchens) and 500 urban (332 humans, 168 vehicles). Real: 100 table clips with 2 views and 100 indoor clips with 48 views. Hard subsets of 27, 78 and 17 clips." width="470" height="476" loading="lazy"></div>
+      </div>
+      <figcaption>Red arcs mark <strong>hard</strong> clips, in which individual cameras lose sight of the target for at least 30 consecutive frames while another camera keeps it in view.</figcaption>
+    </figure>
+
+    <div class="sub-block">
+      <h3 class="sub-heading">Benchmark clips with ground-truth 3D point tracks</h3>
+      <div data-tabs>
+        <div class="tab-list" role="tablist" aria-label="Benchmark domain">
+          <button class="tab" type="button" role="tab" id="bench-tab-1" aria-controls="bench-panel-1" aria-selected="true">Sim / Tabletop</button>
+          <button class="tab" type="button" role="tab" id="bench-tab-2" aria-controls="bench-panel-2" aria-selected="false" tabindex="-1">Sim / Urban pedestrian</button>
+          <button class="tab" type="button" role="tab" id="bench-tab-3" aria-controls="bench-panel-3" aria-selected="false" tabindex="-1">Sim / Urban vehicle</button>
+          <button class="tab" type="button" role="tab" id="bench-tab-4" aria-controls="bench-panel-4" aria-selected="false" tabindex="-1">Real / Tabletop</button>
+          <button class="tab" type="button" role="tab" id="bench-tab-5" aria-controls="bench-panel-5" aria-selected="false" tabindex="-1">Real / Indoor</button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="bench-panel-1" aria-labelledby="bench-tab-1" tabindex="0">
+          <figure class="video-card">
+            <figcaption class="video-top"><span class="video-label">Simulated tabletop manipulation</span><span class="tag">3 views / 20 fps</span></figcaption>
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/bench-sim-tabletop.jpg" width="1920" height="640" aria-label="Simulated tabletop clip in three views with 3D points on the robot and object"><source src="assets/videos/bench-sim-tabletop.mp4" type="video/mp4"></video>
+            <p class="video-caption">A Fourier GR-1 T2 pick-and-place episode rendered in Unreal Engine 5 with clutter and distractors. Ground-truth 3D points on the robot's arms and hands and on the manipulated object are projected into each view.</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="bench-panel-2" aria-labelledby="bench-tab-2" tabindex="0" hidden>
+          <figure class="video-card">
+            <figcaption class="video-top"><span class="video-label navy">Simulated urban dynamics / pedestrian</span><span class="tag">4 moving cameras / 15 fps</span></figcaption>
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/bench-sim-urban-pedestrian.jpg" width="1920" height="480" aria-label="Four moving cameras following a pedestrian with ground-truth surface points"><source src="assets/videos/bench-sim-urban-pedestrian.mp4" type="video/mp4"></video>
+            <p class="video-caption">256 persistent surface points on the target, colored by height and projected with each camera's per-frame pose. <span class="legend-dots"><span><i class="filled"></i>visible</span><span><i class="hollow"></i>in view but occluded (from rendered depth)</span></span><br><strong>Caption:</strong> “A man with short dark hair, wearing a light zip-up jacket and pants, walks steadily along a tree-shaded brick sidewalk past a row of townhouses…”</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="bench-panel-3" aria-labelledby="bench-tab-3" tabindex="0" hidden>
+          <figure class="video-card">
+            <figcaption class="video-top"><span class="video-label navy">Simulated urban dynamics / vehicle</span><span class="tag">4 moving cameras / 15 fps</span></figcaption>
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/bench-sim-urban-vehicle.jpg" width="1920" height="480" aria-label="Four moving cameras following a van with ground-truth surface points, some occluded by trees"><source src="assets/videos/bench-sim-urban-vehicle.mp4" type="video/mp4"></video>
+            <p class="video-caption">Points stay attached to the van when trees and poles hide it, and cam01 pans away from the target for 35 frames before re-acquiring it. <span class="legend-dots"><span><i class="filled"></i>visible</span><span><i class="hollow"></i>in view but occluded</span></span><br><strong>Caption:</strong> “A white Mercedes Sprinter cargo van drives down the center of a wide double-yellow-lined city street, passing an intersection…”</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="bench-panel-4" aria-labelledby="bench-tab-4" tabindex="0" hidden>
+          <figure class="video-card">
+            <figcaption class="video-top"><span class="video-label rust">Real-world tabletop manipulation</span><span class="tag">2 views</span></figcaption>
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/real-tabletop.jpg" width="1920" height="540" aria-label="Exo and ego views of a teleoperated two-arm robot putting a sponge into a bowl, with ground-truth points on its arms and hands"><source src="assets/videos/real-tabletop.mp4" type="video/mp4"></video>
+            <p class="video-caption">One of 100 teleoperated episodes (exo and ego views). Ground-truth 3D tracks on the robot surface come from recorded robot states.</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="bench-panel-5" aria-labelledby="bench-tab-5" tabindex="0" hidden>
+          <figure class="video-card">
+            <figcaption class="video-top"><span class="video-label rust">Real-world indoor scenes</span><span class="tag">2 of 48 views</span></figcaption>
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/real-indoor.jpg" width="1920" height="720" aria-label="Two of 48 synchronized cameras in a home-like space with 3D tracks on a person"><source src="assets/videos/real-indoor.mp4" type="video/mp4"></video>
+            <p class="video-caption">Ten-second sequences of people moving, handling objects and interacting with furniture, captured by 48 synchronized cameras. Points are tracked in 2D across all views and triangulated per frame; only depth-consistent tracks are kept.</p>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-block">
+      <h3 class="sub-heading">Kinematics-grounded 3D points for real robot videos</h3>
+      <p class="sub-intro">For DROID and HRDexDB episodes, points are sampled once on the robot's CAD meshes and moved with the recorded joint states through forward kinematics, so every point keeps its physical identity across time and views. An episode is kept only if its projected CAD mask agrees with a SAM2 robot mask (recall ≥ 0.9).</p>
+      <div data-tabs>
+        <div class="tab-list" role="tablist" aria-label="Robot dataset example">
+          <button class="tab" type="button" role="tab" id="anno-tab-1" aria-controls="anno-panel-1" aria-selected="true">DROID / kitchen</button>
+          <button class="tab" type="button" role="tab" id="anno-tab-2" aria-controls="anno-panel-2" aria-selected="false" tabindex="-1">DROID / sink</button>
+          <button class="tab" type="button" role="tab" id="anno-tab-3" aria-controls="anno-panel-3" aria-selected="false" tabindex="-1">DROID / lab</button>
+          <button class="tab" type="button" role="tab" id="anno-tab-4" aria-controls="anno-panel-4" aria-selected="false" tabindex="-1">HRDexDB / dexterous hand</button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="anno-panel-1" aria-labelledby="anno-tab-1" tabindex="0">
+          <figure class="video-card">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/anno-droid-tri.jpg" width="1920" height="718" aria-label="DROID episode with raw frames, CAD mask overlay and gripper point trajectories for two cameras"><source src="assets/videos/anno-droid-tri.mp4" type="video/mp4"></video>
+            <p class="video-caption">Columns: raw frame / projected CAD mask / gripper points with trajectories. Rows: two exterior cameras.</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="anno-panel-2" aria-labelledby="anno-tab-2" tabindex="0" hidden>
+          <figure class="video-card">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/anno-droid-rail.jpg" width="1920" height="718" aria-label="DROID episode near a sink with CAD mask overlay and gripper point trajectories"><source src="assets/videos/anno-droid-rail.mp4" type="video/mp4"></video>
+            <p class="video-caption">Columns: raw frame / projected CAD mask / gripper points with trajectories. Rows: two exterior cameras.</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="anno-panel-3" aria-labelledby="anno-tab-3" tabindex="0" hidden>
+          <figure class="video-card">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/anno-droid-weird.jpg" width="1920" height="718" aria-label="DROID episode in a lab with CAD mask overlay and gripper point trajectories"><source src="assets/videos/anno-droid-weird.mp4" type="video/mp4"></video>
+            <p class="video-caption">Columns: raw frame / projected CAD mask / gripper points with trajectories. Rows: two exterior cameras.</p>
+          </figure>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="anno-panel-4" aria-labelledby="anno-tab-4" tabindex="0" hidden>
+          <figure class="video-card">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/anno-hrdexdb.jpg" width="1920" height="962" aria-label="HRDexDB episode with a dexterous hand grasping a whisk, with point overlays on the arm and hand"><source src="assets/videos/anno-hrdexdb.mp4" type="video/mp4"></video>
+            <p class="video-caption">Columns: raw frame / point overlay / point tracks on the robot arm and hand. Rows: two cameras.</p>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="page-section results-section container" id="results" aria-labelledby="results-title">
+    <div class="section-heading"><h2 id="results-title">Results</h2><p>VPM (V) is trained on multi-view videos only; VPM (V+T) adds 3D point-trajectory supervision under the same training budget, so the comparison isolates the effect of point supervision. For a fair comparison, no method receives camera parameters for future frames.</p></div>
+    <section class="results-block" aria-labelledby="worldbench-title">
+      <h3 class="results-comparison-title" id="worldbench-title">VP-WorldBench</h3>
+      <p class="results-comparison-note">Baselines are fine-tuned on the same data; single-view models generate each requested view independently. FVD and PSNR measure video fidelity; MEt3R and δ<sup>3D</sup><sub>avg</sub> measure geometric consistency, where δ<sup>3D</sup><sub>avg</sub> is the average fraction of 3D tracks, extracted from generated videos with MVTracker, that land within depth-adaptive thresholds of the ground truth.</p>
+      <div class="radar-group" data-radar-group="worldbench"><p class="chart-foot">The radar charts require JavaScript.</p></div>
+    </section>
+  </section>
+
+  <section class="page-section section-band" id="robot" aria-labelledby="robot-title"><div class="container">
+    <div class="section-heading"><h2 id="robot-title">Point supervision improves robot action learning</h2><p>The action-enabled VPM (V+T+A) is evaluated on LIBERO, LIBERO-Plus and RoboCasa in simulation, and on three real pick-and-place tasks with a Franka Panda arm in the DROID setup (two exterior cameras and one wrist camera, 24 trials per task).</p></div>
+
+    <section class="results-block" aria-labelledby="robot-results-title">
+      <h3 class="results-comparison-title" id="robot-results-title">Success rate (%)</h3>
+      <div class="bar-chart" data-bars="robot"><p class="chart-foot">The bar charts require JavaScript.</p></div>
+      <p class="chart-foot">Methods without a reported number for a benchmark are left out of that panel. Real-world scores give 0.5 for a successful pick-and-place that touches the pile of boxes.</p>
+    </section>
+
+    <div class="sub-block" data-video-group="real-robot">
+      <h3 class="sub-heading">Real-robot rollouts</h3>
+      <p class="sub-intro">Each task places the object and its goal on opposite sides of a pile of boxes, so no single camera shows the whole task and the arm must cross the pile without touching it. Clips play at 2× speed.</p>
+      <figure class="video-card task-card">
+        <figcaption class="video-top"><span class="video-label">PnP Banana</span><span class="tag">Put the banana in the basket without touching the boxes</span></figcaption>
+        <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/robot-banana.jpg" width="1920" height="318" aria-label="Robot picks up a banana and puts it in a basket, two exterior views and a wrist view"><source src="assets/videos/robot-banana.mp4" type="video/mp4"></video>
+        <div class="view-labels" aria-hidden="true"><span>Exterior</span><span>Exterior</span><span>Wrist</span></div>
+      </figure>
+      <figure class="video-card task-card">
+        <figcaption class="video-top"><span class="video-label">PnP Cup</span><span class="tag">Put the cup on the plate without touching the boxes</span></figcaption>
+        <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/robot-cup.jpg" width="1920" height="318" aria-label="Robot picks up a cup and puts it on a plate, two exterior views and a wrist view"><source src="assets/videos/robot-cup.mp4" type="video/mp4"></video>
+        <div class="view-labels" aria-hidden="true"><span>Exterior</span><span>Exterior</span><span>Wrist</span></div>
+      </figure>
+      <figure class="video-card task-card">
+        <figcaption class="video-top"><span class="video-label">PnP Cube</span><span class="tag">Stack the cube on the red cube without touching the boxes</span></figcaption>
+        <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/robot-cube.jpg" width="1920" height="318" aria-label="Robot stacks a small cube on a red cube, two exterior views and a wrist view"><source src="assets/videos/robot-cube.mp4" type="video/mp4"></video>
+        <div class="view-labels" aria-hidden="true"><span>Exterior</span><span>Exterior</span><span>Wrist</span></div>
+      </figure>
+      <div class="playback-bar">
+        <button class="text-button" type="button" data-play-group>Play all</button>
+        <button class="text-button" type="button" data-restart-group>Restart all</button>
+      </div>
+    </div>
+
+    <div class="sub-block">
+      <h3 class="sub-heading">Zero-shot manipulation from predicted 3D point tracks</h3>
+      <figure class="ik-figure">
+        <div class="ik-layout">
+          <div class="ik-cols" aria-hidden="true">
+            <span class="ik-group">Multi-view</span>
+            <span class="ik-cam0">cam0</span>
+            <span class="ik-cam1">cam1</span>
+            <span class="ik-3d">3D visualization</span>
+          </div>
+          <div class="ik-rows" aria-hidden="true">
+            <span>Generated video</span>
+            <span>Predicted point trajectory</span>
+            <span>Robot rollout</span>
+          </div>
+          <div class="video-card ik-video">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/zero-shot-ik.jpg" width="1600" height="1076" aria-label="Zero-shot rollout for putting a banana in a basket: generated video, predicted point trajectory and robot rollout in two camera views, with a 3D visualization of the predicted trajectory"><source src="assets/videos/zero-shot-ik.mp4" type="video/mp4"></video>
+          </div>
+        </div>
+        <figcaption class="visually-hidden">Rows from top to bottom: generated video, predicted point trajectory, robot rollout. Columns from left to right: cam0 and cam1 (multi-view), then a 3D visualization.</figcaption>
+      </figure>
+    </div>
+  </div></section>
+
+  <section class="page-section container" id="gallery" aria-labelledby="gallery-title">
+    <div class="section-heading"><h2 id="gallery-title">Generated videos follow the predicted 3D point tracks</h2><p>The trajectory head predicts point motion from the generator's intermediate features, and the remaining blocks turn those features into future frames. Generated robot hands, vehicles and pedestrians therefore follow the predicted trajectories, and because each trajectory follows a single physical point, the views stay consistent with one another.</p></div>
+
+    <div data-tabs>
+      <div class="tab-list" role="tablist" aria-label="Generated examples">
+        <button class="tab" type="button" role="tab" id="gal-tab-1" aria-controls="gal-panel-1" aria-selected="true">Real / Robot (1)</button>
+        <button class="tab" type="button" role="tab" id="gal-tab-2" aria-controls="gal-panel-2" aria-selected="false" tabindex="-1">Real / Robot (2)</button>
+        <button class="tab" type="button" role="tab" id="gal-tab-3" aria-controls="gal-panel-3" aria-selected="false" tabindex="-1">Real / Human</button>
+        <button class="tab" type="button" role="tab" id="gal-tab-4" aria-controls="gal-panel-4" aria-selected="false" tabindex="-1">Simul / Vehicle</button>
+        <button class="tab" type="button" role="tab" id="gal-tab-5" aria-controls="gal-panel-5" aria-selected="false" tabindex="-1">Simul / Pedestrian</button>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="gal-panel-1" aria-labelledby="gal-tab-1" tabindex="0">
+        <figure class="video-card">
+          <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/gen-rby1.jpg" width="1664" height="552" aria-label="Two generated views of a real robot with predicted 3D point traces"><source src="assets/videos/gen-rby1.mp4" type="video/mp4"></video>
+          <p class="video-caption">Two views (ego and exo) generated jointly from five context frames. The clip cycles through the predicted 3D point traces, the generated video, and both overlaid; the query points are ground-truth points at frame 0.</p>
+        </figure>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="gal-panel-2" aria-labelledby="gal-tab-2" tabindex="0" hidden>
+        <div class="video-stack">
+          <figure class="video-card">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/gen-droid-drawer.jpg" width="1664" height="480" aria-label="Two generated views of a robot placing a screwdriver into a drawer with predicted point trajectories"><source src="assets/videos/gen-droid-drawer.mp4" type="video/mp4"></video>
+          </figure>
+          <figure class="video-card">
+            <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/gen-droid-desk.jpg" width="1664" height="478" aria-label="Two generated views of a robot manipulating an object on a desk with predicted point trajectories"><source src="assets/videos/gen-droid-desk.mp4" type="video/mp4"></video>
+            <p class="video-caption">Two exterior views with predicted point trajectories. Frames outlined in red are generated; the others are context.</p>
+          </figure>
+        </div>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="gal-panel-3" aria-labelledby="gal-tab-3" tabindex="0" hidden>
+        <figure class="video-card">
+          <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/real-human.jpg" width="1920" height="1440" aria-label="Four camera views of a person moving through a home-like room, with point tracks on the person"><source src="assets/videos/real-human.mp4" type="video/mp4"></video>
+          <p class="video-caption">Four of the 48 synchronized camera views in the home-like capture space, with point tracks on the person colored by height.</p>
+        </figure>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="gal-panel-4" aria-labelledby="gal-tab-4" tabindex="0" hidden>
+        <figure class="video-card">
+          <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/gen-urban-car.jpg" width="1920" height="552" aria-label="Four generated camera views of a car with predicted 3D point traces"><source src="assets/videos/gen-urban-car.mp4" type="video/mp4"></video>
+          <p class="video-caption">Four camera-controlled views generated jointly from five context frames (81 frames at 15 fps), with the predicted traces shown alone and drawn on the video they were read from.</p>
+        </figure>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="gal-panel-5" aria-labelledby="gal-tab-5" tabindex="0" hidden>
+        <figure class="video-card">
+          <video data-autoplay muted loop playsinline preload="none" poster="assets/videos/gen-urban-pedestrian.jpg" width="1920" height="552" aria-label="Four generated camera views of a pedestrian with predicted 3D point traces"><source src="assets/videos/gen-urban-pedestrian.mp4" type="video/mp4"></video>
+          <p class="video-caption">Four camera-controlled views generated jointly from five context frames (97 frames at 15 fps), with the predicted traces shown alone and drawn on the video they were read from.</p>
+        </figure>
+      </div>
+    </div>
+  </section>
+</main>
+<footer><div class="footer-content container"><a href="#main">Back to top</a></div></footer>
+</body>
+</html>
