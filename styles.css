@@ -73,6 +73,8 @@ h1 { font-size: clamp(26px, 2.8vw, 34px); font-weight: 750; line-height: 1.2; le
 .link-menu-inner { display: grid; gap: 2px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 10px 28px #0000001f; }
 .link-menu a { display: block; padding: 9px 12px; border-radius: 8px; color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1.3; white-space: nowrap; text-align: left; }
 .link-menu a:hover, .link-menu a:focus-visible { background: #f2f2f2; color: var(--ink); outline: none; }
+.link-menu-disabled { display: flex; align-items: center; gap: 8px; padding: 9px 12px; color: #9a9a9a; font-size: 14px; font-weight: 600; line-height: 1.3; white-space: nowrap; cursor: not-allowed; }
+.link-menu-disabled .soon-tag { padding: 2px 6px; border-radius: 99px; background: #e4e4e4; color: #7a7a7a; font-size: 10px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
 
 /* TL;DR + overview video */
 .tldr-section { padding-top: 13px; padding-bottom: 44px; }
@@ -246,7 +248,7 @@ footer a { color: var(--muted); }
   .hero-links { gap: 8px; margin-top: 18px; }
   .link-button { height: 36px; padding: 0 14px 0 12px; gap: 7px; font-size: 13.5px; }
   .link-button .icon { width: 16px; height: 16px; }
-  .link-menu a { font-size: 13.5px; }
+  .link-menu a, .link-menu-disabled { font-size: 13.5px; }
   .tldr-section { padding-top: 9px; }
   .tldr-box { display: block; padding: 15px 17px; }
   .tldr-tag { display: inline-block; margin: 0 0 7px; font-size: 10px; }
